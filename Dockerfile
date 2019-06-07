@@ -1,6 +1,6 @@
 FROM ubuntu:disco
 RUN apt update
-RUN apt install -y wget
+RUN apt install -y wget graphviz
 RUN wget https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-6.15.4-x64.bin -O /tmp/confluence.bin
 RUN chmod u+x /tmp/confluence.bin
 RUN /tmp/confluence.bin -q -dir /opt/confluence
