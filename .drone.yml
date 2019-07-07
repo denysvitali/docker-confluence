@@ -4,6 +4,9 @@ name: default
 steps:
   - name: build
     image: dvitali/builder-tools:latest
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
     commands:
       - ls -la
       - bash ./build.sh
