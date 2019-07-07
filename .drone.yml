@@ -6,7 +6,7 @@ steps:
     image: dvitali/builder-tools:latest
     privileged: true
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - "/var/run/docker.sock:/var/run/docker.sock"
     commands:
       - bash ./build.sh
       - bash ./build.sh -e
