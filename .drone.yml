@@ -1,0 +1,9 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: build
+    image: docker
+    commands:
+      - ./build.sh
+      - ./build.sh -e
