@@ -9,6 +9,5 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - ls -la
       - bash ./build.sh
       - bash ./build.sh -e
