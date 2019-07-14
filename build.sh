@@ -3,16 +3,23 @@ IMAGE_NAME="confluence"
 SOFTWARE="confluence"
 
 BUILD_EAP=0
+SKIP_PUBLISH=0
 
 function usage(){
-  echo "Usage $1 [-e]"
+  echo "Usage $1 [-e] [-s]"
+  echo ""
+  echo -e "-e\tBuild EAP container images"
+  echo -e "-s\tSkip publish to Docker Hub"
   exit 0
 }
 
-while getopts ":e" o; do
+while getopts "esh" o; do
     case "${o}" in
         e)
             BUILD_EAP=1
+            ;;
+        s)
+            SKIP_PUBLISH=1
             ;;
         *)
             usage
@@ -54,23 +61,31 @@ if [ $BUILD_EAP -eq 1 ]; then
 	docker build \
 	--build-arg "VERSION=${CURRENT_VERSION}" \
 	--build-arg "EAP=1" -t dvitali/${IMAGE_NAME}:${CURRENT_VERSION} .
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:eap
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
-
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_VERSION}
-	docker push dvitali/${IMAGE_NAME}:eap
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
 else
 	docker build --build-arg VERSION=${CURRENT_VERSION} -t dvitali/${IMAGE_NAME}:${CURRENT_VERSION} .
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
-	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:latest
+fi
 
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
-	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
-	docker push dvitali/${IMAGE_NAME}:latest
+if [ $SKIP_PUBLISH -eq 0 ]; then
+  echo "Publishing to Docker Hub..."
+
+  if [ $BUILD_EAP -eq 1 ]; then
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:eap
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
+  
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_VERSION}
+  	docker push dvitali/${IMAGE_NAME}:eap
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
+  else
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
+  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:latest
+  
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
+  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
+  	docker push dvitali/${IMAGE_NAME}:latest
+  fi
 fi

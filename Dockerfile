@@ -1,7 +1,7 @@
 FROM ubuntu:disco
 ARG VERSION
 RUN apt update
-RUN apt install -y wget graphviz
+RUN apt install -y wget graphviz xmlstarlet
 RUN wget https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-${VERSION}-x64.bin -O /tmp/confluence.bin
 RUN chmod u+x /tmp/confluence.bin
 RUN /tmp/confluence.bin -q -dir /opt/confluence
