@@ -1,12 +1,15 @@
 #!/bin/bash
+set -e
 IMAGE_NAME="confluence"
 SOFTWARE="confluence"
+
+DOCKER_HUB_USERNAME="$DOCKER_HUB_USERNAME"
 
 BUILD_EAP=0
 SKIP_PUBLISH=0
 
 function usage(){
-  echo "Usage $1 [-e] [-s]"
+  echo "Usage $0 [-e] [-s]"
   echo ""
   echo -e "-e\tBuild EAP container images"
   echo -e "-s\tSkip publish to Docker Hub"
@@ -47,7 +50,7 @@ fi
 LINUX_BIN=$(echo -n "$VERSIONS" | grep '\.bin$')
 LINUX_BIN=$(echo -e "$LINUX_BIN" | grep $SOFTWARE)
 
-CURRENT_VERSION=$(echo "$LINUX_BIN" | sed -e "s@https://www.atlassian.com/software/${SOFTWARE/-core/}/downloads/binary/atlassian-$SOFTWARE-@@" -e 's/-x64.bin//')
+CURRENT_VERSION=$(echo "$LINUX_BIN" | sed -e "s@https://www.atlassian.com/software/${SOFTWARE/-core/}/downloads/binary/atlassian-$SOFTWARE-@@" -e 's/-x64.bin//' | head -n 1)
 CURRENT_MAJOR=$(echo "$CURRENT_VERSION" | cut -d '.' -f 1)
 CURRENT_MINOR=$(echo "$CURRENT_VERSION" | cut -d '.' -f 2)
 CURRENT_PATCH=$(echo "$CURRENT_VERSION" | cut -d '.' -f 3)
@@ -56,36 +59,37 @@ CURRENT_PATCH=$(echo "$CURRENT_VERSION" | cut -d '.' -f 3)
 echo "Current version: ${CURRENT_VERSION}"
 echo "Current Major: ${CURRENT_MAJOR}"
 echo "Current Minor: ${CURRENT_MINOR}"
+echo "Current Minor: ${CURRENT_PATCH}"
 
 if [ $BUILD_EAP -eq 1 ]; then
 	docker build \
 	--build-arg "VERSION=${CURRENT_VERSION}" \
-	--build-arg "EAP=1" -t dvitali/${IMAGE_NAME}:${CURRENT_VERSION} .
+	--build-arg "EAP=1" -t "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" .
 else
-	docker build --build-arg VERSION=${CURRENT_VERSION} -t dvitali/${IMAGE_NAME}:${CURRENT_VERSION} .
+	docker build --build-arg VERSION="${CURRENT_VERSION}" -t "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" .
 fi
 
 if [ $SKIP_PUBLISH -eq 0 ]; then
   echo "Publishing to Docker Hub..."
 
   if [ $BUILD_EAP -eq 1 ]; then
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:eap
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:eap"
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}-eap"
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap"
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap"
   
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_VERSION}
-  	docker push dvitali/${IMAGE_NAME}:eap
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}-eap
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:eap"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}-eap"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}-eap"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}-eap"
   else
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
-  	docker tag dvitali/${IMAGE_NAME}:${CURRENT_VERSION} dvitali/${IMAGE_NAME}:latest
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}"
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}"
+  	docker tag "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_VERSION}" "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:latest"
   
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}
-  	docker push dvitali/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}
-  	docker push dvitali/${IMAGE_NAME}:latest
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:${CURRENT_MAJOR}.${CURRENT_MINOR}"
+  	docker push "$DOCKER_HUB_USERNAME/${IMAGE_NAME}:latest"
   fi
 fi
